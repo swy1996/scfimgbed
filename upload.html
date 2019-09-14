@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>基于腾讯云无服务器云函数和对象存储cos实现的图床。</title>
+    <link type="text/css" href="https://cdn.bootcss.com/iview/3.4.2-rc.1/styles/iview.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/iview/3.4.2-rc.1/iview.min.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+    <style>
+        #app {
+            margin: 0 auto;
+            width: 40vw;
+            padding-top: 20vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div style="text-align: center">{{title}}</div>
+        <Upload multiple type="drag" :format="['jpg','jpeg','png']" :before-upload="handleBeforeUpload">
+            <div style="padding: 20px 0">
+                <Icon type="ios-cloud-upload" size="52" style="color: #3399ff"></Icon>
+                <p>点击或者拖拽文件</p>
+            </div>
+        </Upload>
+        <div class="demo-upload-list" style="text-align: center" v-for="item in imagelist">
+            <template>
+                <img style="width: 20vw" :src="item.url">
+                <p style="background: rgb(148, 168, 206);">{{item.url}}</p>
+            </template>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                title: '基于腾讯云无服务器云函数和对象存储cos实现的图床。',
+                file: {},
+                imagelist: [],
+                scf_url: '', // 配置scf服务的url
+            },
+            methods: {
+                handleBeforeUpload(File) {
+                    var that = this
+                        // console.log(File)
+                    that.file.name = File.name
+                    let reader = new FileReader();
+                    reader.readAsDataURL(File); //转BASE64       
+                    reader.onload = function(e) {
+                        that.upload(e.target.result)
+                            // console.log(e.target.result)
+                    }
+                    return false
+                },
+                upload(result) {
+                    var that = this
+                    axios.post(that.scf_url, {
+                            img: result,
+                            img_name: that.file.name,
+                        }, {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        })
+                        .then(function(response) {
+                            // handle success
+                            if (response.data.code == 0) {
+                                that.imagelist.push({
+                                    url: `https://${response.data.url}`
+                                })
+                            }
+                            console.log(response)
+                        })
+                        .catch(function(error) {
+                            // handle error
+                        })
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
