@@ -1,0 +1,18 @@
+Resources:
+  default:
+    Type: TencentCloud::Serverless::Namespace
+    scf_imgbed:
+      Properties:
+        CodeUri: .
+        Description: 基于腾讯云无服务器云函数和对象存储cos实现的图床。
+        Environment:
+          Variables: {}
+        Events:
+        Handler: index.main_handler
+        MemorySize: 128
+        Runtime: Nodejs8.9
+        Timeout: 3
+        VpcConfig:
+          SubnetId: ''
+          VpcId: ''
+      Type: TencentCloud::Serverless::Function
